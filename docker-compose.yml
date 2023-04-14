@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  app:
+    container_name: node-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - DATABASE=mongodb+srv://bi47191:<PASSWORD>@cluster0.wenidse.mongodb.net/NewApp
+      - DATABASE_LOCAL=mongodb://localhost:27017/NewApp
+      - DATABASE_PASSWORD=LkZENhAIESJY4e1B
+    depends_on:
+      - db
+    links:
+      - db
+  db:
+    container_name: mongodb
+    image: mongo
+    ports:
+      - '27017:27017'
+    # environment:
+    # - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+    # - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}

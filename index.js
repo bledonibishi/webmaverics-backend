@@ -1,12 +1,14 @@
-const http = require('http');
 const dotenv = require('dotenv');
 const express = require('express');
-const mongoose = require('mongoose');
-dotenv.config({ path: './config.env' });
+const morgan = require('morgan');
+
+const globalErrorHandler = require('./controllers/errorController');
+const AppError = require('./utils/appError');
 const carRoute = require('./routes/carRoutes');
 const viewRoute = require('./routes/viewRoutes');
 const productRoute = require('./routes/productRoutes');
 const cartRoute = require('./routes/cartRoutes');
+const userRoute = require('./routes/userRoutes');
 // const productRoute = require('./routes/productRoutes');
 
 const app = express();
@@ -14,28 +16,26 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-const DB = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD
-);
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
-mongoose.connect(DB).then(() => {
-  console.log('DB connection successful');
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  //   console.log('req.headers', req.headers);
+  next();
 });
-
-const port = process.env.PORT || 5000;
-
-// app.get("/", (req, res) => {
-//   //get requests to the root ("/") will route here
-//   res.sendFile("/public/index.html", { root: __dirname }); //server responds by sending the index.html file to the client's browser
-//   //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile
-// });
 
 app.use('/', viewRoute);
 app.use('/api/v1/cars', carRoute);
 app.use('/api/v1/products', productRoute);
+app.use('/api/v1/users', userRoute);
 app.use('/api/v1/cart', cartRoute);
 
-app.listen(port, () => {
-  console.log(`Now listening on port ${port}`);
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
 });
+
+app.use(globalErrorHandler);
+
+module.exports = app;

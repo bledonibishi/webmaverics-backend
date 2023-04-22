@@ -1,6 +1,11 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const corsOptions = require('./config/corsOptions');
+
+// Allow all origins
 
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
@@ -13,8 +18,11 @@ const userRoute = require('./routes/userRoutes');
 
 const app = express();
 
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+app.use(cookieParser());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

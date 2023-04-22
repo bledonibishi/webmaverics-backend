@@ -13,13 +13,33 @@ const signToken = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+  });
+};
 
 const createSendToken = (user, status, res) => {
+  console.log('user', user);
   const token = signToken(user._id);
+
+  const refreshToken = generateRefreshToken(user._id);
+
+  console.log('refreshToken', refreshToken);
+
+  res.cookie('jwt', refreshToken, {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production',
+    // secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+  });
+
+  user.password = undefined;
 
   res.status(status).json({
     status: 'success',
     token,
+    refreshToken,
     data: {
       user,
     },
@@ -50,6 +70,31 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.handleRefreshToken = catchAsync(async (req, res) => {
+  // Get the refresh token from the cookie
+  const refreshToken = req.cookies.jwt;
+
+  console.log('refreshToken', refreshToken);
+  // Verify the refresh token
+  const decoded = await promisify(jwt.verify)(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  );
+
+  console.log('decoded', decoded);
+
+  // Find the user associated with the refresh token
+  const user = await User.findById(decoded.id);
+
+  console.log('user', user);
+
+  // Generate a new access token
+  const accessToken = signToken(user._id);
+
+  // Send the new access token to the client
+  res.status(200).json({ accessToken });
+});
+
 exports.protect = catchAsync(async (req, res, next) => {
   // getting token and check if its there
   let token;
@@ -58,6 +103,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer ')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   console.log('Authorization header:', req.headers.authorization);
   console.log('token', token);
@@ -71,7 +118,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   //   verificating token
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // check if user still exists because the user could be deleted but jwt token still exists for more security
+  // check if user still exists because the user could be deleted but jwt token still exists(for more security)
   const currentUser = await User.findById(decoded.id);
 
   if (!currentUser) {
@@ -90,6 +137,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
 

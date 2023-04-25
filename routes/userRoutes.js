@@ -14,6 +14,13 @@ router.patch(
   authController.updateMyPassword
 );
 
+// router.get('/self', authController.protect, userController.me);
+router.get(
+  '/self',
+  authController.protect,
+  userController.getMe,
+  userController.getUser
+);
 router.patch('/updateMe', authController.protect, userController.updateMe);
 
 router.route('/signup').post(authController.signup);

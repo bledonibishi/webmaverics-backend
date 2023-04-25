@@ -7,7 +7,7 @@ exports.getAllProducts = async (req, res) => {
   const data = await fetch('https://dummyjson.com/products')
     .then((res) => res.json())
     .then((data) => {
-      return data;
+      return data.products;
     });
 
   return res.status(200).json({

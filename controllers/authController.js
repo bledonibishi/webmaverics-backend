@@ -20,12 +20,9 @@ const generateRefreshToken = (id) => {
 };
 
 const createSendToken = (user, status, res) => {
-  console.log('user', user);
   const token = signToken(user._id);
 
   const refreshToken = generateRefreshToken(user._id);
-
-  console.log('refreshToken', refreshToken);
 
   res.cookie('jwt', refreshToken, {
     httpOnly: true,
@@ -40,9 +37,7 @@ const createSendToken = (user, status, res) => {
     status: 'success',
     token,
     refreshToken,
-    data: {
-      user,
-    },
+    user,
   });
 };
 
@@ -65,8 +60,6 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  console.log('user', user);
-
   createSendToken(user, 200, res);
 });
 
@@ -74,19 +67,14 @@ exports.handleRefreshToken = catchAsync(async (req, res) => {
   // Get the refresh token from the cookie
   const refreshToken = req.cookies.jwt;
 
-  console.log('refreshToken', refreshToken);
   // Verify the refresh token
   const decoded = await promisify(jwt.verify)(
     refreshToken,
     process.env.REFRESH_TOKEN_SECRET
   );
 
-  console.log('decoded', decoded);
-
   // Find the user associated with the refresh token
   const user = await User.findById(decoded.id);
-
-  console.log('user', user);
 
   // Generate a new access token
   const accessToken = signToken(user._id);

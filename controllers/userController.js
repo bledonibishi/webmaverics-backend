@@ -11,6 +11,22 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+// exports.me = catchAsync(async (req, res, next) => {
+//   const email = req.body.email;
+//   const user = await User.findOne({ email });
+
+//   console.log('user', user);
+
+//   res.status(200).json({
+//     status: 'success',
+//     user,
+//   });
+// });
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
 exports.createUser = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -48,5 +64,21 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+exports.getUser = catchAsync(async (req, res, next) => {
+  let query = User.findById(req.params.id);
+
+  // if (popOptions) query = query.populate(popOptions);
+  const doc = await query;
+
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: doc,
   });
 });

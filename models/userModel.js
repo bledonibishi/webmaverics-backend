@@ -10,6 +10,25 @@ const userSchema = new mongoose.Schema({
     trim: true,
     unique: true,
   },
+  surname: {
+    type: 'String',
+    required: [true, 'A user must have a surname'],
+    trim: true,
+  },
+  gender: {
+    type: 'String',
+    required: [true, 'A user must have a gender'],
+  },
+  country: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Country',
+    required: [true, 'Please select a country'],
+  },
+  city: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'City',
+    required: [true, 'Please select a city'],
+  },
   email: {
     type: String,
     unique: true,
@@ -18,6 +37,24 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
   photo: { type: String, default: 'default.jpg' },
+  birthYear: {
+    type: Number,
+    required: [true, 'Please provide your birth year'],
+    min: 1900,
+    max: new Date().getFullYear(),
+  },
+  birthMonth: {
+    type: Number,
+    required: [true, 'Please provide your birth month'],
+    min: 1,
+    max: 12,
+  },
+  birthDay: {
+    type: Number,
+    required: [true, 'Please provide your birth day'],
+    min: 1,
+    max: 31,
+  },
   role: {
     type: String,
     enum: ['user', 'guide', 'lead-guide', 'admin'],

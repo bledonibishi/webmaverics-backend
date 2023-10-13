@@ -17,24 +17,22 @@ const productSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // details: [
-    //   {
-    //     type: {
-    //       type: String,
-    //       enum: ['size', 'color', 'weight'], // Example of enum validation
-    //       required: true,
-    //     },
-    //     value: {
-    //       type: String, // Can be changed to Number if value is numeric
-    //       required: true,
-    //     },
-    //   },
-    // ],
-    details: [String],
+    details: [
+      {
+        key: {
+          type: String,
+          required: true,
+        },
+        value: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
     summary: {
       type: String,
       trim: true,
-      required: [true, 'Atour must have a description'],
+      required: [true, 'A product must have a description'],
     },
     description: {
       type: String,
@@ -42,12 +40,21 @@ const productSchema = mongoose.Schema(
     },
     imageCover: {
       type: String,
-      required: [true, 'A tour must have a cover image'],
+      required: [true, 'A product must have a cover image'],
     },
     images: [String],
     price: {
       type: 'Number',
-      required: [true, 'A tour must have a price'],
+      required: [true, 'A product must have a price'],
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProductCategory',
+      required: [true, 'A product must have category'],
+    },
+    stock: {
+      type: 'Number',
+      required: [true, 'A product must have  stock'],
     },
     priceDiscount: {
       type: Number,

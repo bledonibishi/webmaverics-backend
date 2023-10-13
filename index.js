@@ -1,10 +1,22 @@
-const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const corsOptions = require('./config/corsOptions');
+const path = require('path');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
+const store = new MongoDBStore({
+  uri: process.env.DB,
+});
 
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+const bodyParser = require('body-parser');
+const compression = require('compression');
 // Allow all origins
 
 const globalErrorHandler = require('./controllers/errorController');
@@ -15,19 +27,54 @@ const productRoute = require('./routes/productRoutes');
 const cartRoute = require('./routes/cartRoutes');
 const userRoute = require('./routes/userRoutes');
 const countryRoute = require('./routes/countryRoutes');
+const wishlistRoute = require('./routes/wishlistRoutes');
+
 // const productRoute = require('./routes/productRoutes');
 
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'build')));
+
 app.use(cors(corsOptions));
+
+// Set security HTTP headers
+app.use(helmet());
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+const limiter = rateLimit({
+  max: 1000,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+});
+app.use('/api', limiter);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 app.use(cookieParser());
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
+
+app.use(compression());
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -35,12 +82,32 @@ app.use((req, res, next) => {
   next();
 });
 
+store.on('error', function (error) {
+  console.log(error);
+});
+app.use(
+  session({
+    secret: process.env.REFRESH_TOKEN_SECRET,
+    // secret: process.env.REFRESH_TOKEN_SECRET,
+    secret: 'This is a secret',
+    store: store,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      httpOnly: false, // allow client-side JavaScript to access the cookie
+      secure: process.env.NODE_ENV === 'production', // use secure cookies in production
+    },
+  })
+);
+
 app.use('/', viewRoute);
 app.use('/api/v1/cars', carRoute);
 app.use('/api/v1/products', productRoute);
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/cart', cartRoute);
 app.use('/api/v1/country', countryRoute);
+app.use('/api/v1/wishlist', wishlistRoute);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));

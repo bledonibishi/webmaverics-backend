@@ -74,7 +74,7 @@ exports.deleteOne = catchAsync(async (req, res, next) => {
   const userWishlist = user.wishlist;
 
   const product = userWishlist.products.findIndex(
-    (item) => item.toString() === req.body.product
+    (item) => item.toString() === req.params.productId
   );
 
   if (product === -1) {
@@ -82,6 +82,7 @@ exports.deleteOne = catchAsync(async (req, res, next) => {
   }
 
   userWishlist.products.splice(product, 1);
+  console.log('here');
   await userWishlist.save();
 
   res.status(200).json({

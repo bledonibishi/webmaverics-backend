@@ -6,7 +6,12 @@ const router = express.Router();
 
 router.get('/', authController.protect, wishlistController.getAllProducts);
 router.post('/create', authController.protect, wishlistController.createOne);
-router.delete('/delete', authController.protect, wishlistController.deleteOne);
+router.delete(
+  '/delete/:productId',
+  authController.protect,
+  wishlistController.deleteOne
+);
+
 router.delete(
   '/deleteAll',
   authController.protect,

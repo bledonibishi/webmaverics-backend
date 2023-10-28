@@ -23,19 +23,17 @@ const upload = multer({
 
 exports.uploadProductImages = upload.fields([
   { name: 'imageCover', maxCount: 1 },
-  { name: 'images', maxCount: 3 },
+  { name: 'images', maxCount: 10 },
 ]);
 
-// upload.single('image') req.file
-// upload.array('images', 5) req.files
-
 exports.resizeProductImages = catchAsync(async (req, res, next) => {
+  console.log('req.files.images', req.files);
   if (!req.files.imageCover || !req.files.images) return next();
 
   // 1) Cover image
   req.body.imageCover = `product-${req.params.id}-${Date.now()}-cover.jpeg`;
   await sharp(req.files.imageCover[0].buffer)
-    .resize(2000, 1333)
+    .resize(185, 185)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`public/img/products/${req.body.imageCover}`);
@@ -45,12 +43,12 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
 
   await Promise.all(
     req.files.images.map(async (file, i) => {
-      const filename = `product-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      const filename = `product-${req.params.id}-${Date.now()}-${i + 1}.png`;
 
       await sharp(file.buffer)
-        .resize(2000, 1333)
-        .toFormat('jpeg')
-        .jpeg({ quality: 90 })
+        // .resize(185, 185)
+        .toFormat('png')
+        .png({ quality: 90 })
         .toFile(`public/img/products/${filename}`);
 
       req.body.images.push(filename);
@@ -60,11 +58,47 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
   next();
 });
 
+exports.createProduct = catchAsync(async (req, res, next) => {
+  const price = parseFloat(req.body.price);
+  const discount = parseFloat(req.body.discount);
+  const stock = parseFloat(req.body.stock);
+
+  const discountPercentage = discount || 0;
+  const originalPrice = price;
+  const discountedPrice =
+    originalPrice - (originalPrice * discountPercentage) / 100;
+
+  const productData = {
+    ...req.body,
+    price,
+    discount,
+    stock,
+    priceDiscount: discountedPrice,
+  };
+
+  const product = await Product.create(productData);
+
+  if (!product) {
+    return next(new AppError('Cant create product', 401));
+  }
+
+  res.status(200).json(product);
+});
+
 exports.getAllProducts = async (req, res) => {
   const data = await Product.find();
 
   return res.status(200).json(data);
 };
+
+exports.getAllProductCategories = catchAsync(async (req, res, next) => {
+  const categories = await ProductCategory.find();
+
+  if (!categories) {
+    return next(new AppError('Cannot find categories', 404));
+  }
+  res.status(200).json(categories);
+});
 
 exports.getProduct = async (req, res) => {
   const product = await Product.findById(req.params.id);
@@ -76,14 +110,21 @@ exports.getProduct = async (req, res) => {
   return res.status(200).json(product);
 };
 
-exports.createProduct = catchAsync(async (req, res, next) => {
-  const product = await Product.create(req.body);
+exports.updateProduct = catchAsync(async (req, res, next) => {
+  const doc = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
-  if (!product) {
-    return next(new AppError('Cant create product', 401));
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
   }
 
-  res.status(200).json(product);
+  res.status(200).json(doc);
+});
+
+exports.test = catchAsync(async (req, res, next) => {
+  console.log('req.body', req.body);
 });
 
 exports.createProductCategory = catchAsync(async (req, res, next) => {
@@ -94,4 +135,20 @@ exports.createProductCategory = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json(category);
+});
+
+exports.findRelatedProducts = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new AppError('Product not found', 404));
+  }
+
+  const relatedProductIds = product.relatedProducts;
+
+  const relatedProducts = await Product.find({
+    _id: { $in: relatedProductIds },
+  });
+
+  res.status(200).json(relatedProducts);
 });

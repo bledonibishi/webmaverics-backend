@@ -80,12 +80,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true,
   });
-  res.status(200).json({
-    success: 'success',
-    data: {
-      user: updatedUser,
-    },
-  });
+  res.status(200).json(updatedUser);
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {

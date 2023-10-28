@@ -28,12 +28,16 @@ const cartRoute = require('./routes/cartRoutes');
 const userRoute = require('./routes/userRoutes');
 const countryRoute = require('./routes/countryRoutes');
 const wishlistRoute = require('./routes/wishlistRoutes');
+const addressRoute = require('./routes/addressRoutes');
+const ratingRoute = require('./routes/ratingRoutes');
+const orderRoute = require('./routes/orderRoutes');
 
 // const productRoute = require('./routes/productRoutes');
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(cors(corsOptions));
 
@@ -108,6 +112,9 @@ app.use('/api/v1/users', userRoute);
 app.use('/api/v1/cart', cartRoute);
 app.use('/api/v1/country', countryRoute);
 app.use('/api/v1/wishlist', wishlistRoute);
+app.use('/api/v1/address', addressRoute);
+app.use('/api/v1/ratings', ratingRoute);
+app.use('/api/v1/orders', orderRoute);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));

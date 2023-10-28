@@ -82,6 +82,8 @@ const DB = process.env.DATABASE.replace(
 
 const port = process.env.PORT || 5000;
 
+console.log('port', port);
+
 mongoose
   .connect(DB)
   .then(() => {

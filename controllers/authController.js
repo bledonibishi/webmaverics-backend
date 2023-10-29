@@ -7,6 +7,7 @@ const http = require('http');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -46,6 +47,10 @@ const createSendToken = (user, status, res) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create(req.body);
+
+  const url = `${req.protocol}://${req.get('host')}/`;
+  console.log('url', url);
+  await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 200, res);
 });
@@ -181,45 +186,27 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  // get user with email
   const user = await User.findOne({ email: req.body.email });
 
   if (!user) {
     return next(new AppError('There is no user with this email address', 404));
   }
 
-  // generate the random token
   const resetToken = user.createPasswordResetToken();
-
-  console.log('resetToken', resetToken);
   await user.save({ validateBeforeSave: false });
 
-  // send it to user email
   try {
-    const resetURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/users/resetPassword/${resetToken}`;
+    const resetURL = `${req.protocol}://localhost:3000/resetPassword/${resetToken}`;
+    // const resetURL = `${req.protocol}://${req.get(
+    //   'host'
+    // )}/api/v1/users/resetPassword/${resetToken}`;
 
-    console.log('resetURL', resetURL);
-
-    const message = `Forget your password? Go here ${resetURL}`;
-
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token is valid for 10min',
-      message: message,
-    });
+    await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'success',
       message: 'Token sent to email!',
     });
-
-    // await new Email(user, resetURL).sendPasswordReset();
-    //     res.status(200).json({
-    //       status: 'Success',
-    //       message: 'Token send to email',
-    //     });
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
@@ -243,7 +230,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  // If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError('Token in invalid or has expired', 400));
   }

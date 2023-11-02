@@ -4,7 +4,7 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-router.get('/realatedProducts/:id', productController.findRelatedProducts);
+router.get('/relatedProducts/:id', productController.findRelatedProducts);
 router.get('/', productController.getAllProducts);
 router.get('/categories', productController.getAllProductCategories);
 router.get('/:id', productController.getProduct);

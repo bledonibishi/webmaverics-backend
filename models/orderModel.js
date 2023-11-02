@@ -1,4 +1,5 @@
 const { default: mongoose } = require('mongoose');
+const shortid = require('shortid');
 
 const orderSchema = mongoose.Schema(
   {
@@ -87,6 +88,10 @@ const orderSchema = mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    paid: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -96,6 +101,17 @@ const orderSchema = mongoose.Schema(
 
 orderSchema.virtual('timeToArrival').get(function () {
   return this.arrivalDate - this.orderDate;
+});
+
+orderSchema.pre(/^find/, function (next) {
+  this.populate('userID');
+  next();
+});
+orderSchema.pre('save', function (next) {
+  if (!this.orderCode) {
+    this.orderCode = shortid.generate();
+  }
+  next();
 });
 
 const Order = mongoose.model('Order', orderSchema);

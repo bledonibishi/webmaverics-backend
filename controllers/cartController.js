@@ -130,3 +130,16 @@ exports.decreaseProductQuantity = catchAsync(async (req, res, next) => {
     message: 'The product quantity has been decreased',
   });
 });
+
+exports.clearCart = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const cart = await Cart.findOne({ user: userId });
+
+  await cart.updateOne({ $set: { items: [] } });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'All products have been removed from the cart',
+  });
+});

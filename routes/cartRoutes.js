@@ -17,5 +17,6 @@ router.patch(
   authController.protect,
   cartController.decreaseProductQuantity
 );
+router.delete('/clear/cart', authController.protect, cartController.clearCart);
 
 module.exports = router;

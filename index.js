@@ -31,6 +31,8 @@ const wishlistRoute = require('./routes/wishlistRoutes');
 const addressRoute = require('./routes/addressRoutes');
 const ratingRoute = require('./routes/ratingRoutes');
 const orderRoute = require('./routes/orderRoutes');
+const paymentRoute = require('./routes/paymentsRoutes');
+const returnRequestRoute = require('./routes/returnRequestRoutes');
 
 // const productRoute = require('./routes/productRoutes');
 
@@ -115,6 +117,8 @@ app.use('/api/v1/wishlist', wishlistRoute);
 app.use('/api/v1/address', addressRoute);
 app.use('/api/v1/ratings', ratingRoute);
 app.use('/api/v1/orders', orderRoute);
+app.use('/api/v1/payments', paymentRoute);
+app.use('/api/v1/returnRequest', returnRequestRoute);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));

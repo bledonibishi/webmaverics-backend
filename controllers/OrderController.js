@@ -1,4 +1,5 @@
 const Order = require('../models/orderModel');
+const Product = require('../models/productModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
@@ -7,6 +8,25 @@ exports.createOne = catchAsync(async (req, res, next) => {
 
   if (!newRating) {
     return next(new AppError('Cannot create new user', 401));
+  }
+
+  for (const productItem of req.body.products) {
+    const productId = productItem.product;
+    const quantity = productItem.quantity;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return next(new AppError('Product not found', 404));
+    }
+
+    if (product.stock < quantity) {
+      return next(
+        new AppError('Not enough stock available for a product', 400)
+      );
+    }
+    product.stock -= quantity;
+    await product.save();
   }
 
   await newRating.populate('products.product');

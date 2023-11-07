@@ -21,7 +21,6 @@ const compression = require('compression');
 
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
-const carRoute = require('./routes/carRoutes');
 const viewRoute = require('./routes/viewRoutes');
 const productRoute = require('./routes/productRoutes');
 const cartRoute = require('./routes/cartRoutes');
@@ -108,7 +107,6 @@ app.use(
 );
 
 app.use('/', viewRoute);
-app.use('/api/v1/cars', carRoute);
 app.use('/api/v1/products', productRoute);
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/cart', cartRoute);

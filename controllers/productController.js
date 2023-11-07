@@ -152,3 +152,13 @@ exports.findRelatedProducts = catchAsync(async (req, res, next) => {
 
   res.status(200).json(relatedProducts);
 });
+
+exports.filterByPrice = catchAsync(async (req, res, next) => {
+  const { minPrice, maxPrice } = req.query;
+
+  const filteredProducts = await Product.find({
+    price: { $gte: minPrice, $lte: maxPrice },
+  });
+
+  res.status(200).json(filteredProducts);
+});

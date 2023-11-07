@@ -18,17 +18,17 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: 'String',
-      required: [true, 'A user must have a gender'],
+      // required: [true, 'A user must have a gender'],
     },
     country: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Country',
-      required: [true, 'Please select a country'],
+      // required: [true, 'Please select a country'],
     },
     city: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'City',
-      required: [true, 'Please select a city'],
+      // required: [true, 'Please select a city'],
     },
     email: {
       type: String,
@@ -40,19 +40,19 @@ const userSchema = mongoose.Schema(
     photo: { type: String, default: 'default.jpg' },
     birthYear: {
       type: Number,
-      required: [true, 'Please provide your birth year'],
+      // required: [true, 'Please provide your birth year'],
       min: 1900,
       max: new Date().getFullYear(),
     },
     birthMonth: {
       type: Number,
-      required: [true, 'Please provide your birth month'],
+      // required: [true, 'Please provide your birth month'],
       min: 1,
       max: 12,
     },
     birthDay: {
       type: Number,
-      required: [true, 'Please provide your birth day'],
+      // required: [true, 'Please provide your birth day'],
       min: 1,
       max: 31,
     },

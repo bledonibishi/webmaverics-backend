@@ -27,7 +27,7 @@ const createSendToken = (user, status, res) => {
 
   res.cookie('jwt', token, {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 10000
     ),
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
@@ -164,6 +164,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   res.locals.user = currentUser;
   next();
 });
+
 exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
@@ -249,7 +250,33 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('Token in invalid or has expired', 400));
   }
-  user.password = req.body.password;
+
+  const password = req.body.password;
+
+  if (password.length < 8) {
+    return next(
+      new AppError('Password must be at least 8 characters long.', 400)
+    );
+  }
+
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    return next(
+      new AppError('Password must contain at least one special character.', 400)
+    );
+  }
+
+  if (!/\d/.test(password)) {
+    return next(
+      new AppError('Password must contain at least one number.', 400)
+    );
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return next(
+      new AppError('Password must contain at least one uppercase letter.', 400)
+    );
+  }
+  user.password = password;
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;

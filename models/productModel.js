@@ -6,6 +6,9 @@ const productSchema = mongoose.Schema(
       type: String,
       required: [true, 'A product must have title'],
     },
+    brand: {
+      type: String,
+    },
     ratingsAverage: {
       type: Number,
       default: 4.5,

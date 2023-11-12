@@ -38,23 +38,18 @@ const userSchema = mongoose.Schema(
       validate: [validator.isEmail, 'Please provide a valid email'],
     },
     photo: { type: String, default: 'default.jpg' },
-    birthYear: {
-      type: Number,
-      // required: [true, 'Please provide your birth year'],
-      min: 1900,
-      max: new Date().getFullYear(),
-    },
-    birthMonth: {
-      type: Number,
-      // required: [true, 'Please provide your birth month'],
-      min: 1,
-      max: 12,
-    },
-    birthDay: {
-      type: Number,
-      // required: [true, 'Please provide your birth day'],
-      min: 1,
-      max: 31,
+    birthdate: {
+      type: Date,
+      validate: {
+        validator: function (value) {
+          const currentYear = new Date().getFullYear();
+          const minDate = new Date(1900, 0, 1);
+          const maxDate = new Date(currentYear, 11, 31);
+
+          return value >= minDate && value <= maxDate;
+        },
+        message: 'Invalid birthdate',
+      },
     },
     role: {
       type: String,

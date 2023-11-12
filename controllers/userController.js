@@ -3,6 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
+const moment = require('moment');
 
 const multerStorage = multer.memoryStorage();
 
@@ -43,6 +44,7 @@ const filterObj = (obj, ...allowedFields) => {
   console.log('newObj', newObj);
   return newObj;
 };
+
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
   next();
@@ -75,7 +77,13 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     return next(new AppError('Password should not be posted here', 400));
   }
 
-  const filteredBody = filterObj(req.body, 'name', 'email');
+  const filteredBody = filterObj(
+    req.body,
+    'name',
+    'surname',
+    'gender',
+    'birthdate'
+  );
   const updatedUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
     new: true,
     runValidators: true,

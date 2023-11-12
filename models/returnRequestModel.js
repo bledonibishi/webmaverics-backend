@@ -5,7 +5,7 @@ const returnRequestSchema = mongoose.Schema(
   {
     order: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Order', // Reference to the original order
+      ref: 'Order',
       required: [true, 'A return request must reference an order'],
       index: true,
     },
@@ -41,7 +41,7 @@ const returnRequestSchema = mongoose.Schema(
     },
     returningAction: {
       type: String,
-      enum: ['refund', 'exchange', 'credit'], // Add any other relevant options
+      enum: ['refund', 'exchange', 'credit'],
       required: true,
     },
     returningStatus: {

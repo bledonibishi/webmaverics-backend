@@ -80,13 +80,15 @@ const productSchema = mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
-      validate: {
-        validator: function (val) {
-          return val === null || val <= this.price;
-        },
-        message:
-          'Discount price ({VALUE}) should be below or equal to regular price',
-      },
+      // validate: {
+      //   validator: (val) => {
+      //     console.log('val', val);
+      //     console.log('this.price', this.price);
+      //     return val === null || val <= this.price;
+      //   },
+      //   message:
+      //     'Discount price ({VALUE}) should be below or equal to regular price',
+      // },
     },
     shippingDate: {
       type: Date,
@@ -164,6 +166,7 @@ productSchema.pre('save', function (next) {
     const discountedPrice =
       originalPrice - (originalPrice * discountPercentage) / 100;
     this.priceDiscount = discountedPrice;
+    // this.priceDiscount = Math.min(discountedPrice, originalPrice);
   }
 
   next();

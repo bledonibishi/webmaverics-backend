@@ -6,6 +6,8 @@ const corsOptions = require('./config/corsOptions');
 const path = require('path');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const passport = require('passport');
+const passportConfig = require('./utils/passport');
 const store = new MongoDBStore({
   uri: process.env.DB,
 });
@@ -17,6 +19,9 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const bodyParser = require('body-parser');
 const compression = require('compression');
+
+const app = express();
+
 // Allow all origins
 
 const globalErrorHandler = require('./controllers/errorController');
@@ -33,11 +38,13 @@ const orderRoute = require('./routes/orderRoutes');
 const paymentRoute = require('./routes/paymentsRoutes');
 const returnRequestRoute = require('./routes/returnRequestRoutes');
 
-// const productRoute = require('./routes/productRoutes');
-
-const app = express();
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+require('./utils/passport');
+
 // app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(cors(corsOptions));

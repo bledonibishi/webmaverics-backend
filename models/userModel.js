@@ -88,6 +88,9 @@ const userSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Wishlist',
     },
+    googleId: {
+      type: String,
+    },
   },
   {
     toJSON: { virtuals: true },

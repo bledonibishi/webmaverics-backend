@@ -51,3 +51,34 @@ exports.updateOne = catchAsync(async (req, res, next) => {
   }
   res.status(200).json(updatedRequest);
 });
+
+exports.updateStatus = catchAsync(async (req, res, next) => {
+  const { returnRequestId } = req.params;
+  const { action, status } = req.body;
+
+  const returnRequest = await ReturnRequest.findById(returnRequestId);
+
+  if (!returnRequest) {
+    return next(new AppError('Return request not found', 404));
+  }
+
+  if (action === 'approve') {
+    returnRequest.returningStatus = 'approved';
+  } else if (action === 'deny') {
+    returnRequest.returningStatus = 'rejected';
+  } else if (action === 'setPending') {
+    returnRequest.returningStatus = 'pending';
+  } else {
+    return next(new AppError('Invalid action', 400));
+  }
+
+  await returnRequest.save();
+
+  res
+    .status(200)
+    .json({
+      message: 'Return request updated successfully',
+      status: 'success',
+      returnRequest,
+    });
+});

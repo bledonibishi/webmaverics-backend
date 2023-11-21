@@ -20,7 +20,7 @@ const generateRefreshToken = (id) => {
   });
 };
 
-const createSendToken = (user, status, res) => {
+const createSendToken = (user, status, req, res) => {
   const token = signToken(user._id);
 
   const refreshToken = generateRefreshToken(user._id);
@@ -58,22 +58,18 @@ exports.signup = catchAsync(async (req, res, next) => {
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  console.log('req.body', req.body);
-
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
 
   const user = await User.findOne({ email }).select('+password');
 
-  console.log('user', user._id);
-
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   req.session.userId = user._id;
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 exports.logout = (req, res) => {
   // Invalidate session

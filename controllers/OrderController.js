@@ -63,3 +63,44 @@ exports.getOrderWithUserID = catchAsync(async (req, res, next) => {
 
   res.status(200).json(ratings);
 });
+
+exports.getAllOrders = catchAsync(async (req, res, next) => {
+  const orders = await Order.find().populate('products.product');
+
+  if (!orders) {
+    return next(new AppError('Cannot find orders ', 401));
+  }
+
+  res.status(200).json(orders);
+});
+
+exports.updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { orderID } = req.params;
+  const { action, status } = req.body;
+
+  const order = await Order.findById(orderID);
+
+  if (!order) {
+    return next(new AppError('Order not found', 404));
+  }
+
+  if (action === 'complete') {
+    order.status = 'completed';
+  } else if (action === 'deny') {
+    order.status = 'rejected';
+  } else if (action === 'processed') {
+    order.status = 'processed';
+  } else if (action === 'setPending') {
+    order.status = 'pending';
+  } else {
+    return next(new AppError('Invalid action', 400));
+  }
+
+  await order.save();
+
+  res.status(200).json({
+    message: 'Order status updated successfully',
+    status: 'success',
+    order,
+  });
+});

@@ -23,5 +23,11 @@ router.patch(
   authController.restrictTo('admin'),
   returnRequestController.updateOne
 );
+router.patch(
+  '/updateStatus/:returnRequestId',
+  authController.protect,
+  authController.restrictTo('admin'),
+  returnRequestController.updateStatus
+);
 
 module.exports = router;
